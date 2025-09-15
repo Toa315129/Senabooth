@@ -26,16 +26,30 @@
   #video{width:92%;border-radius:8px;background:black;transform:scaleX(-1);}
   .countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:900;color:rgba(255,255,255,0.95);text-shadow:0 6px 18px rgba(0,0,0,0.5);pointer-events:none;}
   .controls{margin-top:12px;display:flex;gap:8px;justify-content:center;}
-  button{background:var(--accent-yellow);border:0;padding:8px 12px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,0.12);}
-  button.secondary{background:#e6f3ff;color:var(--text);font-weight:600;}
+  button{background:var(--accent-yellow);border:0;padding:12px 20px;border-radius:50%;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);
+         width:70px;height:70px;font-size:0;position:relative;}
+  button::after{ /* จุดกลางแบบปุ่มกล้อง */
+    content:"";
+    position:absolute;
+    top:50%;left:50%;
+    width:40px;height:40px;
+    background:#fff;
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    box-shadow:0 0 0 4px #ffd54f inset;
+  }
+  button.secondary{
+    width:auto;height:auto;font-size:14px;border-radius:12px;
+    padding:8px 14px;
+    background:#e6f3ff;color:var(--text);font-weight:600;
+  }
   .thumbs{margin-top:12px;display:flex;flex-direction:column;gap:8px;align-items:center;}
   .thumb-row{width:92%;display:flex;gap:8px;justify-content:space-between;}
-  .thumb{width:30%;background:white;border-radius:8px;overflow:hidden;height:80px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(10,30,60,0.06);}
+  .thumb{width:22%;background:white;border-radius:8px;overflow:hidden;height:80px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(10,30,60,0.06);}
   .thumb img{width:100%;height:100%;object-fit:cover;border-radius:8px;}
   .small-note{font-size:12px;color:#334e6b;text-align:center;margin-top:8px;}
   .actions{display:flex;gap:8px;justify-content:center;margin-top:8px;}
   .download-btn{background:#4d9cff;color:white;padding:8px 10px;border-radius:10px;border:0;font-weight:700;}
-  /* เอฟเฟ็กต์แฟลช */
   .flash {
     position: absolute;
     inset: 0;
@@ -46,6 +60,22 @@
     z-index: 10;
   }
   .flash.show { opacity: 0.8; }
+  /* ข้อความ Photo Booth หลังถ่ายเสร็จ */
+  .final-text{
+    position:absolute;
+    top:8%;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:48px;
+    font-weight:900;
+    color:#ffd54f;
+    text-shadow:0 4px 10px rgba(0,0,0,0.3);
+    opacity:0;
+    pointer-events:none;
+    z-index:20;
+    transition:opacity 0.8s ease;
+  }
+  .final-text.show{opacity:1;}
   @media(min-width:700px){.booth{width:480px;}}
 </style>
 </head>
@@ -56,13 +86,12 @@
     <div class="frame-preview" id="framePreview">
       <video id="video" autoplay playsinline></video>
       <div class="countdown" id="countdown" style="display:none;"></div>
-      <!-- ดาวเพิ่มเยอะๆ -->
       <div id="stars"></div>
-      <!-- แฟลช -->
       <div class="flash" id="flash"></div>
+      <div class="final-text" id="finalText">Photo Booth</div>
     </div>
     <div class="controls">
-      <button id="startBtn">เริ่มถ่าย (3 รูป)</button>
+      <button id="startBtn" title="ถ่ายภาพ"></button>
       <button id="retakeBtn" class="secondary">เริ่มใหม่</button>
     </div>
     <div class="thumbs">
@@ -70,8 +99,9 @@
         <div class="thumb" id="t1"><span style="opacity:0.45;">1</span></div>
         <div class="thumb" id="t2"><span style="opacity:0.45;">2</span></div>
         <div class="thumb" id="t3"><span style="opacity:0.45;">3</span></div>
+        <div class="thumb" id="t4"><span style="opacity:0.45;">4</span></div>
       </div>
-      <div class="small-note">ภาพตัวอย่าง 3 ช่อง (แนวตั้ง) • ขนาดส่งออก 4×6 นิ้ว</div>
+      <div class="small-note">ภาพตัวอย่าง 4 ช่อง (แนวตั้ง) • ขนาดส่งออก 4×6 นิ้ว</div>
       <div class="actions">
         <button id="downloadBtn" class="download-btn">ดาวน์โหลด 4x6</button>
       </div>
@@ -79,7 +109,6 @@
   </div>
 </div>
 
-<!-- เสียงชัตเตอร์ -->
 <audio id="snapSound" src="https://cdn.jsdelivr.net/gh/naptha/talkdemo/snap.mp3" preload="auto"></audio>
 
 <script>
@@ -88,17 +117,18 @@
   const startBtn=document.getElementById('startBtn');
   const retakeBtn=document.getElementById('retakeBtn');
   const countdownEl=document.getElementById('countdown');
-  const thumbs=[document.getElementById('t1'),document.getElementById('t2'),document.getElementById('t3')];
+  const thumbs=[document.getElementById('t1'),document.getElementById('t2'),
+                document.getElementById('t3'),document.getElementById('t4')];
   const snapSound=document.getElementById('snapSound');
   const flashEl=document.getElementById('flash');
-  let captures=[null,null,null];
+  const finalText=document.getElementById('finalText');
+  let captures=[null,null,null,null];
 
-  // ใส่ดาวเล็กใหญ่ไม่ทับ video
   const starContainer=document.getElementById('stars');
-  function createStars(n=15){
+  function createStars(n=20){
     for(let i=0;i<n;i++){
       const star=document.createElement('div');
-      const size=Math.random()*14+6; // 6-20px
+      const size=Math.random()*14+6;
       star.style.width=star.style.height=size+'px';
       star.style.background='#ffd54f';
       star.style.clipPath='polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)';
@@ -139,25 +169,33 @@
     setTimeout(()=>flashEl.classList.remove('show'),150);
   }
 
-  async function takeThreeShots(){
+  async function takeFourShots(){
     startBtn.disabled=true;retakeBtn.disabled=true;
-    captures=[null,null,null];
+    captures=[null,null,null,null];
+    finalText.classList.remove('show');
     thumbs.forEach((el,i)=>el.innerHTML=`<span style="opacity:0.45;">${i+1}</span>`);
-    for(let i=0;i<3;i++){
+    for(let i=0;i<4;i++){
       for(let s=3;s>=1;s--){showCountdown(s);await new Promise(r=>setTimeout(r,800));}
       hideCountdown();
       const data=captureFrame();
       captures[i]=data;
-      playSnap(); // เล่นเสียงและแฟลช
+      playSnap();
       thumbs[i].innerHTML=`<img src="${data}">`;
       await new Promise(r=>setTimeout(r,400));
     }
+    // โชว์ข้อความน่ารัก
+    finalText.classList.add('show');
+    setTimeout(()=>finalText.classList.remove('show'),3000);
     startBtn.disabled=false;retakeBtn.disabled=false;
   }
-  startBtn.addEventListener('click',takeThreeShots);
-  retakeBtn.addEventListener('click',()=>{captures=[null,null,null];thumbs.forEach((el,i)=>el.innerHTML=`<span style="opacity:0.45;">${i+1}</span>`);});
+  startBtn.addEventListener('click',takeFourShots);
+  retakeBtn.addEventListener('click',()=>{
+    captures=[null,null,null,null];
+    finalText.classList.remove('show');
+    thumbs.forEach((el,i)=>el.innerHTML=`<span style="opacity:0.45;">${i+1}</span>`);
+  });
 
-  // ฟังก์ชัน export
+  // ---- ฟังก์ชัน export 4 รูป ----
   function drawStar(ctx,x,y,r,color){
     ctx.save();ctx.fillStyle=color;ctx.beginPath();
     for(let i=0;i<5;i++){const a=(Math.PI*2*i)/5-Math.PI/2;ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);const ia=a+Math.PI/5;ctx.lineTo(x+Math.cos(ia)*r*0.5,y+Math.sin(ia)*r*0.5);}
@@ -188,20 +226,19 @@
     const innerW=finalW-margin*2,innerH=finalH-innerY-margin;
     ctx.fillStyle='#fff';roundRect(ctx,innerX,innerY,innerW,innerH,20,true,false);
 
-    ctx.fillStyle='#08324d';ctx.font='700 52px Quicksand';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText('Photo Booth @saphasena68',finalW/2,margin+20);
+    ctx.fillStyle='#08324d';ctx.font='900 64px Quicksand';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('Photo Booth',finalW/2,margin+25);
 
-    const gutter=20,photoX=innerX+28,photoW=innerW-56;
-    const singleH=Math.floor((innerH-gutter*2-56)/3);
+    const gutter=18,photoX=innerX+28,photoW=innerW-56;
+    const singleH=Math.floor((innerH-gutter*3-56)/4);
     let y=innerY+28;
-    for(let i=0;i<3;i++){
+    for(let i=0;i<4;i++){
       ctx.fillStyle='#e9f6ff';roundRect(ctx,photoX,y,photoW,singleH,14,true,false);
       if(captures[i]) await drawImageInFrame(ctx,captures[i],photoX,y,photoW,singleH,14);
       ctx.strokeStyle='#fff';ctx.lineWidth=8;roundRect(ctx,photoX+6,y+6,photoW-12,singleH-12,10,false,true);
       y+=singleH+gutter;
     }
 
-    // กระจายดาวสุ่ม
     for(let i=0;i<25;i++){
       const r=Math.random()*18+6;
       const x=Math.random()*finalW;
