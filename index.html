@@ -1,194 +1,255 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8">
 <title>Photo Booth @saphasena68</title>
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --frame-blue:#bfeeff;
-    --accent-yellow:#ffd54f;
-    --card-bg:#ffffff;
-    --shadow:0 8px 20px rgba(0,0,0,0.15);
-    --radius:16px;
-    --text:#0b3b5a;
+  body{
+    margin:0; font-family:'Nunito',sans-serif; background:#f0f8ff;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh;
   }
-  html,body{
-    height:100%;margin:0;
-    font-family:"Quicksand","Kanit","Inter",sans-serif;
-    background:#f3f7fb;color:var(--text);
+  .booth{
+    position:relative; width:360px; padding:16px;
+    background:#fff; border-radius:16px; 
+    box-shadow:0 6px 20px rgba(0,0,0,0.2);
+    border:6px solid #87cefa;
+    overflow:hidden;
   }
-  .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;}
-  .booth{width:380px;background:linear-gradient(180deg,var(--card-bg),#f7fbff);border-radius:18px;box-shadow:var(--shadow);padding:14px;}
-  .title{text-align:center;font-weight:700;font-size:18px;margin-bottom:8px;color:var(--text);}
-  .frame-preview{width:100%;background:var(--frame-blue);border-radius:12px;padding:8px;box-sizing:border-box;position:relative;overflow:hidden;aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;}
-  #video{width:92%;border-radius:8px;background:black;transform:scaleX(-1);}
-  .countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:900;color:rgba(255,255,255,0.95);text-shadow:0 6px 18px rgba(0,0,0,0.5);pointer-events:none;}
-  .controls{margin-top:12px;display:flex;gap:8px;justify-content:center;}
-  button{background:var(--accent-yellow);border:0;padding:8px 12px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,0.12);}
-  button.secondary{background:#e6f3ff;color:var(--text);font-weight:600;}
-  .thumbs{margin-top:12px;display:flex;flex-direction:column;gap:8px;align-items:center;}
-  .thumb-row{width:92%;display:flex;gap:8px;justify-content:space-between;}
-  .thumb{width:30%;background:white;border-radius:8px;overflow:hidden;height:80px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(10,30,60,0.06);}
-  .thumb img{width:100%;height:100%;object-fit:cover;border-radius:8px;}
-  .small-note{font-size:12px;color:#334e6b;text-align:center;margin-top:8px;}
-  .actions{display:flex;gap:8px;justify-content:center;margin-top:8px;}
-  .download-btn{background:#4d9cff;color:white;padding:8px 10px;border-radius:10px;border:0;font-weight:700;}
-  @media(min-width:700px){.booth{width:480px;}}
+  h2{
+    text-align:center; margin:0 0 8px; color:#333;
+    font-family:'Nunito', sans-serif;
+    font-size:20px; font-weight:700;
+  }
+  video{ width:100%; border-radius:12px; }
+  .countdown{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    font-size:72px; font-weight:bold; color:#fff; 
+    text-shadow:0 0 20px #000;
+    display:none; pointer-events:none;
+  }
+  .thumbs{ display:flex; justify-content:space-between; margin-top:10px; }
+  .thumb{
+    width:30%; aspect-ratio:3/4; background:#e0f7ff; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; font-weight:bold; color:#555; overflow:hidden;
+    position:relative; box-shadow:inset 0 0 4px rgba(0,0,0,0.1);
+    transition:all .3s;
+  }
+  .thumb img{ width:100%; height:100%; object-fit:cover; border-radius:8px; }
+  .thumb.captured{
+    animation: pop 0.4s ease;
+    box-shadow: 0 0 0 4px #ffd54f inset, 0 0 12px rgba(255,213,79,0.8);
+  }
+  .thumb.next{
+    animation: blink 1s infinite;
+    box-shadow: 0 0 8px rgba(255,213,79,0.7);
+  }
+  @keyframes pop{
+    0%{transform:scale(0.9);opacity:0.5;}
+    70%{transform:scale(1.05);opacity:1;}
+    100%{transform:scale(1);}
+  }
+  @keyframes blink{
+    0%,100%{opacity:1;}
+    50%{opacity:0.4;}
+  }
+  .controls{ margin-top:10px; text-align:center; }
+  button{
+    background:#87cefa; border:none; padding:10px 18px;
+    border-radius:20px; font-size:15px; cursor:pointer; margin:4px;
+    font-family:'Nunito',sans-serif;
+  }
+  button:disabled{opacity:0.5; cursor:not-allowed;}
+  .stars{
+    position:absolute; inset:0; pointer-events:none; overflow:hidden;
+  }
+  .star{
+    position:absolute; background:yellow; border-radius:50%;
+    opacity:0.8; animation: twinkle 2s infinite ease-in-out alternate;
+  }
+  @keyframes twinkle{
+    from{transform:scale(0.8);opacity:0.6;}
+    to{transform:scale(1.3);opacity:1;}
+  }
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<div class="wrap">
   <div class="booth">
-    <div class="title">Photo Booth @saphasena68</div>
-    <div class="frame-preview" id="framePreview">
-      <video id="video" autoplay playsinline></video>
-      <div class="countdown" id="countdown" style="display:none;"></div>
-      <!-- ดาวเพิ่มเยอะๆ -->
-      <div id="stars"></div>
+    <h2>📸 Photo Booth @saphasena68</h2>
+    <video id="video" autoplay playsinline></video>
+    <div id="countdown" class="countdown"></div>
+    <div class="thumbs">
+      <div class="thumb">1</div>
+      <div class="thumb">2</div>
+      <div class="thumb">3</div>
     </div>
     <div class="controls">
-      <button id="startBtn">เริ่มถ่าย (3 รูป)</button>
-      <button id="retakeBtn" class="secondary">เริ่มใหม่</button>
+      <button id="startBtn">เริ่มถ่าย</button>
+      <button id="retakeBtn" disabled>ถ่ายใหม่</button>
+      <button id="downloadBtn" disabled>ดาวน์โหลด</button>
     </div>
-    <div class="thumbs">
-      <div class="thumb-row">
-        <div class="thumb" id="t1"><span style="opacity:0.45;">1</span></div>
-        <div class="thumb" id="t2"><span style="opacity:0.45;">2</span></div>
-        <div class="thumb" id="t3"><span style="opacity:0.45;">3</span></div>
-      </div>
-      <div class="small-note">ภาพตัวอย่าง 3 ช่อง (แนวตั้ง) • ขนาดส่งออก 4×6 นิ้ว</div>
-      <div class="actions">
-        <button id="downloadBtn" class="download-btn">ดาวน์โหลด 4x6</button>
-      </div>
-    </div>
+    <div class="stars" id="stars"></div>
   </div>
-</div>
+
+  <!-- เสียงแชะ -->
+  <audio id="shutterSound" preload="auto">
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_17808e58d2.mp3?filename=camera-shutter-click-03-10769.mp3" type="audio/mp3">
+  </audio>
 
 <script>
-(async function(){
-  const video=document.getElementById('video');
-  const startBtn=document.getElementById('startBtn');
-  const retakeBtn=document.getElementById('retakeBtn');
-  const countdownEl=document.getElementById('countdown');
-  const thumbs=[document.getElementById('t1'),document.getElementById('t2'),document.getElementById('t3')];
-  let captures=[null,null,null];
+const video=document.getElementById('video');
+const startBtn=document.getElementById('startBtn');
+const retakeBtn=document.getElementById('retakeBtn');
+const downloadBtn=document.getElementById('downloadBtn');
+const countdown=document.getElementById('countdown');
+const thumbs=[...document.querySelectorAll('.thumb')];
+const stars=document.getElementById('stars');
+const shutterSound=document.getElementById('shutterSound');
+let captures=[];
 
-  // ใส่ดาวเล็กใหญ่ไม่ทับ video
-  const starContainer=document.getElementById('stars');
-  function createStars(n=15){
-    for(let i=0;i<n;i++){
-      const star=document.createElement('div');
-      const size=Math.random()*14+6; // 6-20px
-      star.style.width=star.style.height=size+'px';
-      star.style.background='#ffd54f';
-      star.style.clipPath='polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)';
-      star.style.position='absolute';
-      star.style.top=Math.random()*90+'%';
-      star.style.left=Math.random()*90+'%';
-      star.style.opacity=0.9;
-      starContainer.appendChild(star);
-    }
+// เปิดกล้อง
+navigator.mediaDevices.getUserMedia({video:true}).then(stream=>{
+  video.srcObject=stream;
+});
+
+// สร้างดาวสุ่ม
+function makeStars(){
+  for(let i=0;i<40;i++){
+    const s=document.createElement('div');
+    const size=Math.random()*6+3;
+    s.className='star';
+    s.style.width=s.style.height=size+'px';
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    s.style.animationDelay=(Math.random()*2)+'s';
+    stars.appendChild(s);
   }
-  createStars(20);
+}
+makeStars();
 
-  async function startCamera(){
-    try{
-      const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});
-      video.srcObject=stream; await video.play();
-    }catch(err){alert('เปิดกล้องไม่สำเร็จ');}
+// countdown
+function showCountdown(n){countdown.style.display='block';countdown.textContent=n;}
+function hideCountdown(){countdown.style.display='none';}
+
+// capture frame
+function captureFrame(){
+  const c=document.createElement('canvas');
+  c.width=video.videoWidth; c.height=video.videoHeight;
+  c.getContext('2d').drawImage(video,0,0,c.width,c.height);
+  return c.toDataURL('image/jpeg');
+}
+
+// เอฟเฟกต์ flash
+function doFlash(){
+  const flash=document.createElement('div');
+  flash.style.position='fixed';flash.style.inset='0';
+  flash.style.background='white';flash.style.opacity='0.95';
+  flash.style.transition='opacity 170ms';flash.style.zIndex='999';
+  document.body.appendChild(flash);
+  setTimeout(()=>{flash.style.opacity='0';setTimeout(()=>flash.remove(),200);},120);
+}
+
+// ถ่าย 3 รูป
+async function takeThreeShots(){
+  startBtn.disabled = true; retakeBtn.disabled = true;
+  captures = [null,null,null];
+  thumbs.forEach((el,i)=>{ el.classList.remove('captured','next'); el.innerHTML=`<span style="opacity:0.45;">${i+1}</span>` });
+
+  for(let i=0;i<3;i++){
+    thumbs[i].classList.add('next');
+    for(let s=3;s>=1;s--){ showCountdown(s); await new Promise(r=>setTimeout(r,800)); }
+    hideCountdown();
+    thumbs[i].classList.remove('next');
+
+    // เสียง + flash
+    shutterSound.currentTime=0; shutterSound.play();
+    doFlash();
+
+    // บันทึก
+    const data=captureFrame(); captures[i]=data;
+    thumbs[i].innerHTML=`<img src="${data}">`;
+    thumbs[i].classList.add('captured');
+
+    await new Promise(r=>setTimeout(r,600));
   }
-  await startCamera();
+  startBtn.disabled = false; retakeBtn.disabled = false; downloadBtn.disabled = false;
+}
 
-  function showCountdown(n){countdownEl.style.display='flex';countdownEl.textContent=n;}
-  function hideCountdown(){countdownEl.style.display='none';}
+// รวมเป็นไฟล์ดาวน์โหลด
+downloadBtn.addEventListener('click',async()=>{
+  if(captures.length<3) return;
+  const w=1200,h=1800;
+  const canvas=document.createElement('canvas');
+  canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext('2d');
 
-  function captureFrame(){
-    const vw=video.videoWidth,vh=video.videoHeight;
-    const canvas=document.createElement('canvas');
-    canvas.width=vw;canvas.height=vh;
-    const ctx=canvas.getContext('2d');
-    ctx.translate(vw,0);ctx.scale(-1,1);
-    ctx.drawImage(video,0,0,vw,vh);
-    return canvas.toDataURL('image/png');
+  // background
+  ctx.fillStyle='#f0f8ff'; ctx.fillRect(0,0,w,h);
+
+  // stars
+  for(let i=0;i<60;i++){
+    const size=Math.random()*10+4;
+    ctx.fillStyle='rgba(255,223,0,'+(0.5+Math.random()*0.5)+')';
+    ctx.beginPath();
+    ctx.arc(Math.random()*w,Math.random()*h,size,0,Math.PI*2);
+    ctx.fill();
   }
 
-  async function takeThreeShots(){
-    startBtn.disabled=true;retakeBtn.disabled=true;
-    captures=[null,null,null];
-    thumbs.forEach((el,i)=>el.innerHTML=`<span style="opacity:0.45;">${i+1}</span>`);
-    for(let i=0;i<3;i++){
-      for(let s=3;s>=1;s--){showCountdown(s);await new Promise(r=>setTimeout(r,800));}
-      hideCountdown();
-      const data=captureFrame();captures[i]=data;
-      thumbs[i].innerHTML=`<img src="${data}">`;
-      await new Promise(r=>setTimeout(r,400));
-    }
-    startBtn.disabled=false;retakeBtn.disabled=false;
-  }
-  startBtn.addEventListener('click',takeThreeShots);
-  retakeBtn.addEventListener('click',()=>{captures=[null,null,null];thumbs.forEach((el,i)=>el.innerHTML=`<span style="opacity:0.45;">${i+1}</span>`);});
+  // กรอบรอบนอก
+  ctx.lineWidth=20; ctx.strokeStyle='#87cefa';
+  ctx.strokeRect(10,10,w-20,h-20);
 
-  // ฟังก์ชันวาดกรอบดาวเวลา export
-  function drawStar(ctx,x,y,r,color){
-    ctx.save();ctx.fillStyle=color;ctx.beginPath();
-    for(let i=0;i<5;i++){const a=(Math.PI*2*i)/5-Math.PI/2;ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);const ia=a+Math.PI/5;ctx.lineTo(x+Math.cos(ia)*r*0.5,y+Math.sin(ia)*r*0.5);}
-    ctx.closePath();ctx.fill();ctx.restore();
-  }
-  function roundRect(ctx,x,y,w,h,r,fill,stroke){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();if(fill)ctx.fill();if(stroke)ctx.stroke();}
-  function drawImageInFrame(ctx,imgSrc,x,y,w,h,r){
-    return new Promise((resolve,reject)=>{
-      const img=new Image();
-      img.onload=function(){
-        ctx.save();roundRect(ctx,x,y,w,h,r,false,false);ctx.clip();
-        const ratio=Math.max(w/img.width,h/img.height);
-        const nw=img.width*ratio,nh=img.height*ratio;
-        const dx=x+(w-nw)/2,dy=y+(h-nh)/2;
-        ctx.drawImage(img,dx,dy,nw,nh);ctx.restore();resolve();
-      };img.onerror=reject;img.src=imgSrc;
-    });
+  // ข้อความ
+  ctx.fillStyle='#333';
+  ctx.font='bold 48px Nunito';
+  ctx.textAlign='center';
+  ctx.fillText('📸 Photo Booth @saphasena68',w/2,70);
+
+  const margin=80; const photoW=w-2*margin; const singleH=(h-220)/3;
+  for(let i=0;i<3;i++){
+    const y=120+i*singleH+20*i;
+    await drawImageInFrame(ctx,captures[i],margin,y,photoW,singleH,20);
   }
 
-  document.getElementById('downloadBtn').addEventListener('click',async()=>{
-    if(!captures.some(c=>c)){alert('ยังไม่ได้ถ่ายภาพ');return;}
-    const finalW=1200,finalH=1800;
-    const canvas=document.createElement('canvas');canvas.width=finalW;canvas.height=finalH;
-    const ctx=canvas.getContext('2d');
-    ctx.fillStyle='#bfeeff';ctx.fillRect(0,0,finalW,finalH);
+  const link=document.createElement('a');
+  link.download='photobooth.png';
+  link.href=canvas.toDataURL('image/png');
+  link.click();
+});
 
-    const margin=60,innerX=margin,innerY=margin+60;
-    const innerW=finalW-margin*2,innerH=finalH-innerY-margin;
-    ctx.fillStyle='#fff';roundRect(ctx,innerX,innerY,innerW,innerH,20,true,false);
+function roundRect(ctx,x,y,width,height,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+width-r,y);
+  ctx.quadraticCurveTo(x+width,y,x+width,y+r);
+  ctx.lineTo(x+width,y+height-r);
+  ctx.quadraticCurveTo(x+width,y+height,x+width-r,y+height);
+  ctx.lineTo(x+r,y+height);
+  ctx.quadraticCurveTo(x,y+height,x,y+height-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
 
-    ctx.fillStyle='#08324d';ctx.font='700 52px Quicksand';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText('Photo Booth @saphasena68',finalW/2,margin+20);
-
-    const gutter=20,photoX=innerX+28,photoW=innerW-56;
-    const singleH=Math.floor((innerH-gutter*2-56)/3);
-    let y=innerY+28;
-    for(let i=0;i<3;i++){
-      ctx.fillStyle='#e9f6ff';roundRect(ctx,photoX,y,photoW,singleH,14,true,false);
-      if(captures[i]) await drawImageInFrame(ctx,captures[i],photoX,y,photoW,singleH,14);
-      ctx.strokeStyle='#fff';ctx.lineWidth=8;roundRect(ctx,photoX+6,y+6,photoW-12,singleH-12,10,false,true);
-      y+=singleH+gutter;
-    }
-
-    // กระจายดาวสุ่ม (รอบกรอบไม่ทับรูป)
-    for(let i=0;i<25;i++){
-      const r=Math.random()*18+6;
-      const x=Math.random()*finalW;
-      const yPos=Math.random()*finalH;
-      // กันไม่ให้ทับรูป (โซนกลาง)
-      if(x>photoX-40 && x<photoX+photoW+40 && yPos>innerY-20 && yPos<innerY+innerH+20) continue;
-      drawStar(ctx,x,yPos,r,'#ffd54f');
-    }
-
-    ctx.fillStyle='#3b6b85';ctx.font='18px Quicksand';ctx.fillText('พิมพ์ขนาด 4x6 นิ้ว • Photo Booth',finalW/2,finalH-30);
-
-    const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='photobooth_4x6.png';a.click();
+function drawImageInFrame(ctx,src,x,y,w,h,r){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=function(){
+      ctx.save(); roundRect(ctx,x,y,w,h,r); ctx.clip();
+      const ratio=Math.max(w/img.width,h/img.height);
+      const nw=img.width*ratio, nh=img.height*ratio;
+      const dx=x+(w-nw)/2, dy=y+(h-nh)/2;
+      ctx.drawImage(img,dx,dy,nw,nh); ctx.restore();
+      ctx.lineWidth=6; ctx.strokeStyle='#87cefa'; roundRect(ctx,x,y,w,h,r); ctx.stroke();
+      resolve();
+    };
+    img.onerror=reject; img.src=src;
   });
-})();
+}
+
+startBtn.onclick=takeThreeShots;
+retakeBtn.onclick=takeThreeShots;
 </script>
 </body>
 </html>
