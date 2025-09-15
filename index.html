@@ -10,20 +10,19 @@
   }
   .booth{
     position:relative; width:360px; padding:16px;
-    background:#fff; border-radius:16px; 
-    box-shadow:0 6px 20px rgba(0,0,0,0.2);
-    border:6px solid #87cefa;
+    background:#fff; border-radius:16px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.15);
+    border:4px solid #87cefa;
     overflow:hidden;
   }
   h2{
     text-align:center; margin:0 0 8px; color:#333;
-    font-family:'Nunito', sans-serif;
-    font-size:20px; font-weight:700;
+    font-size:18px; font-weight:700;
   }
   video{ width:100%; border-radius:12px; }
   .countdown{
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    font-size:72px; font-weight:bold; color:#fff; 
+    font-size:72px; font-weight:bold; color:#fff;
     text-shadow:0 0 20px #000;
     display:none; pointer-events:none;
   }
@@ -31,19 +30,12 @@
   .thumb{
     width:30%; aspect-ratio:3/4; background:#e0f7ff; border-radius:8px;
     display:flex; align-items:center; justify-content:center;
-    font-size:22px; font-weight:bold; color:#555; overflow:hidden;
-    position:relative; box-shadow:inset 0 0 4px rgba(0,0,0,0.1);
-    transition:all .3s;
+    font-size:20px; font-weight:bold; color:#555; overflow:hidden;
+    position:relative; transition:all .3s;
   }
   .thumb img{ width:100%; height:100%; object-fit:cover; border-radius:8px; }
-  .thumb.captured{
-    animation: pop 0.4s ease;
-    box-shadow: 0 0 0 4px #ffd54f inset, 0 0 12px rgba(255,213,79,0.8);
-  }
-  .thumb.next{
-    animation: blink 1s infinite;
-    box-shadow: 0 0 8px rgba(255,213,79,0.7);
-  }
+  .thumb.captured{ animation: pop 0.4s ease; border:2px solid #ffd54f; }
+  .thumb.next{ animation: blink 1s infinite; border:2px dashed #ffd54f; }
   @keyframes pop{
     0%{transform:scale(0.9);opacity:0.5;}
     70%{transform:scale(1.05);opacity:1;}
@@ -55,28 +47,23 @@
   }
   .controls{ margin-top:10px; text-align:center; }
   button{
-    background:#87cefa; border:none; padding:10px 18px;
-    border-radius:20px; font-size:15px; cursor:pointer; margin:4px;
+    background:#87cefa; border:none; padding:8px 16px;
+    border-radius:18px; font-size:14px; cursor:pointer; margin:4px;
     font-family:'Nunito',sans-serif;
   }
   button:disabled{opacity:0.5; cursor:not-allowed;}
   .stars{
-    position:absolute; inset:0; pointer-events:none; overflow:hidden;
+    position:absolute; inset:0; pointer-events:none;
   }
   .star{
-    position:absolute; background:yellow; border-radius:50%;
-    opacity:0.8; animation: twinkle 2s infinite ease-in-out alternate;
-  }
-  @keyframes twinkle{
-    from{transform:scale(0.8);opacity:0.6;}
-    to{transform:scale(1.3);opacity:1;}
+    position:absolute; background:#ffd54f; border-radius:50%;
   }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="booth">
-    <h2>📸 Photo Booth @saphasena68</h2>
+    <h2>Photo Booth @saphasena68</h2>
     <video id="video" autoplay playsinline></video>
     <div id="countdown" class="countdown"></div>
     <div class="thumbs">
@@ -88,6 +75,7 @@
       <button id="startBtn">เริ่มถ่าย</button>
       <button id="retakeBtn" disabled>ถ่ายใหม่</button>
       <button id="downloadBtn" disabled>ดาวน์โหลด</button>
+      <button id="printBtn" disabled>พิมพ์รูป</button>
     </div>
     <div class="stars" id="stars"></div>
   </div>
@@ -102,6 +90,7 @@ const video=document.getElementById('video');
 const startBtn=document.getElementById('startBtn');
 const retakeBtn=document.getElementById('retakeBtn');
 const downloadBtn=document.getElementById('downloadBtn');
+const printBtn=document.getElementById('printBtn');
 const countdown=document.getElementById('countdown');
 const thumbs=[...document.querySelectorAll('.thumb')];
 const stars=document.getElementById('stars');
@@ -113,16 +102,15 @@ navigator.mediaDevices.getUserMedia({video:true}).then(stream=>{
   video.srcObject=stream;
 });
 
-// สร้างดาวสุ่ม
+// สร้างดาวสุ่ม (แบบเรียบๆ มินิมอล)
 function makeStars(){
-  for(let i=0;i<40;i++){
+  for(let i=0;i<30;i++){
     const s=document.createElement('div');
     const size=Math.random()*6+3;
     s.className='star';
     s.style.width=s.style.height=size+'px';
     s.style.left=Math.random()*100+'%';
     s.style.top=Math.random()*100+'%';
-    s.style.animationDelay=(Math.random()*2)+'s';
     stars.appendChild(s);
   }
 }
@@ -140,7 +128,7 @@ function captureFrame(){
   return c.toDataURL('image/jpeg');
 }
 
-// เอฟเฟกต์ flash
+// flash
 function doFlash(){
   const flash=document.createElement('div');
   flash.style.position='fixed';flash.style.inset='0';
@@ -154,7 +142,7 @@ function doFlash(){
 async function takeThreeShots(){
   startBtn.disabled = true; retakeBtn.disabled = true;
   captures = [null,null,null];
-  thumbs.forEach((el,i)=>{ el.classList.remove('captured','next'); el.innerHTML=`<span style="opacity:0.45;">${i+1}</span>` });
+  thumbs.forEach((el,i)=>{ el.classList.remove('captured','next'); el.innerHTML=`${i+1}` });
 
   for(let i=0;i<3;i++){
     thumbs[i].classList.add('next');
@@ -166,45 +154,43 @@ async function takeThreeShots(){
     shutterSound.currentTime=0; shutterSound.play();
     doFlash();
 
-    // บันทึก
     const data=captureFrame(); captures[i]=data;
     thumbs[i].innerHTML=`<img src="${data}">`;
     thumbs[i].classList.add('captured');
 
     await new Promise(r=>setTimeout(r,600));
   }
-  startBtn.disabled = false; retakeBtn.disabled = false; downloadBtn.disabled = false;
+  startBtn.disabled = false; retakeBtn.disabled = false; downloadBtn.disabled = false; printBtn.disabled=false;
 }
 
 // รวมเป็นไฟล์ดาวน์โหลด
-downloadBtn.addEventListener('click',async()=>{
+downloadBtn.addEventListener('click',()=>saveOrPrint(false));
+printBtn.addEventListener('click',()=>saveOrPrint(true));
+
+async function saveOrPrint(isPrint){
   if(captures.length<3) return;
   const w=1200,h=1800;
   const canvas=document.createElement('canvas');
   canvas.width=w;canvas.height=h;
   const ctx=canvas.getContext('2d');
 
-  // background
   ctx.fillStyle='#f0f8ff'; ctx.fillRect(0,0,w,h);
 
-  // stars
-  for(let i=0;i<60;i++){
+  // ดาว
+  for(let i=0;i<40;i++){
     const size=Math.random()*10+4;
-    ctx.fillStyle='rgba(255,223,0,'+(0.5+Math.random()*0.5)+')';
+    ctx.fillStyle='#ffd54f';
     ctx.beginPath();
     ctx.arc(Math.random()*w,Math.random()*h,size,0,Math.PI*2);
     ctx.fill();
   }
 
-  // กรอบรอบนอก
-  ctx.lineWidth=20; ctx.strokeStyle='#87cefa';
-  ctx.strokeRect(10,10,w-20,h-20);
+  ctx.strokeStyle='#87cefa'; ctx.lineWidth=12;
+  ctx.strokeRect(20,20,w-40,h-40);
 
-  // ข้อความ
   ctx.fillStyle='#333';
-  ctx.font='bold 48px Nunito';
-  ctx.textAlign='center';
-  ctx.fillText('📸 Photo Booth @saphasena68',w/2,70);
+  ctx.font='bold 42px Nunito'; ctx.textAlign='center';
+  ctx.fillText('Photo Booth @saphasena68',w/2,80);
 
   const margin=80; const photoW=w-2*margin; const singleH=(h-220)/3;
   for(let i=0;i<3;i++){
@@ -212,11 +198,17 @@ downloadBtn.addEventListener('click',async()=>{
     await drawImageInFrame(ctx,captures[i],margin,y,photoW,singleH,20);
   }
 
-  const link=document.createElement('a');
-  link.download='photobooth.png';
-  link.href=canvas.toDataURL('image/png');
-  link.click();
-});
+  if(isPrint){
+    const win=window.open();
+    win.document.write('<img src="'+canvas.toDataURL('image/png')+'" style="width:100%">');
+    win.print();
+  }else{
+    const link=document.createElement('a');
+    link.download='photobooth.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+  }
+}
 
 function roundRect(ctx,x,y,width,height,r){
   ctx.beginPath();
@@ -241,7 +233,8 @@ function drawImageInFrame(ctx,src,x,y,w,h,r){
       const nw=img.width*ratio, nh=img.height*ratio;
       const dx=x+(w-nw)/2, dy=y+(h-nh)/2;
       ctx.drawImage(img,dx,dy,nw,nh); ctx.restore();
-      ctx.lineWidth=6; ctx.strokeStyle='#87cefa'; roundRect(ctx,x,y,w,h,r); ctx.stroke();
+      ctx.strokeStyle='#87cefa'; ctx.lineWidth=6;
+      roundRect(ctx,x,y,w,h,r); ctx.stroke();
       resolve();
     };
     img.onerror=reject; img.src=src;
