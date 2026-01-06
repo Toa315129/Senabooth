@@ -98,79 +98,113 @@
         .blink-text { animation: blink 1.5s infinite; }
         @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
-        /* FRAME SELECTION UI (UPDATED) */
+        /* =========================================
+           FRAME SELECTION UI (NEW REALISTIC STYLE)
+           ========================================= */
         #screen-frames {
-            justify-content: center; align-items: center; background: #080808; padding: 20px;
+            justify-content: center; align-items: center; background: #080808; 
+            padding: 40px 20px;
         }
-        .frame-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-            width: 100%; max-width: 600px;
+
+        /* Container สำหรับเรียงแนวนอน */
+        .frame-list {
+            display: flex;
+            gap: 25px;
+            overflow-x: auto; /* ให้เลื่อนแนวนอนได้ถ้าจอแคบ */
+            padding: 20px 10px;
+            width: 100%;
+            justify-content: center; /* จัดกึ่งกลางถ้าพื้นที่เหลือ */
+            align-items: center;
+            
+            /* ซ่อน Scrollbar แต่ยังเลื่อนได้ */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE 10+ */
         }
+        .frame-list::-webkit-scrollbar { display: none; /* Chrome/Safari/Webkit */ }
         
-        .btn-frame {
-            /* โครงสร้างพื้นฐานของปุ่ม */
-            height: 160px;
-            border-radius: 8px;
+        /* โครงสร้างพื้นฐานของ Mini Strip */
+        .mini-strip {
+            /* อัตราส่วนประมาณ Photostrip จริง */
+            width: 140px; 
+            height: 380px; 
+            flex-shrink: 0; /* ไม่ให้โดนบีบจนเล็กเกินไป */
+            
+            display: flex; flex-direction: column;
+            padding: 15px 10px;
             cursor: pointer;
+            transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             position: relative;
-            overflow: hidden;
-            border: 2px solid #333;
-            transition: 0.2s all;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-
-        .btn-frame:hover { transform: scale(1.02); z-index: 10; border-color: #fff; }
-        .btn-frame:active { transform: scale(0.98); }
-
-        /* ส่วนแสดงผลรูปจำลอง (สีเทาๆ ตรงกลาง) */
-        .mini-photo-area {
-            width: 60%; height: 50%;
-            background: #333;
-            margin-bottom: 10px;
             border-radius: 2px;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
         }
-
-        /* Label ชื่อกรอบ */
-        .frame-label {
-            font-family: var(--font-code);
-            font-size: 1rem;
-            background: rgba(0,0,0,0.7);
-            padding: 2px 8px;
-            border-radius: 4px;
-            color: #fff;
-            z-index: 2;
-        }
-
-        /* ----- STYLES สำหรับแต่ละกรอบ ----- */
         
-        /* 1. Polaroid: ขาวคลีน */
-        .btn-frame.style-polaroid { background: #f8f8f8; }
-        .btn-frame.style-polaroid .frame-label { color: #000; background: transparent; font-weight: bold; font-family: var(--font-ui); }
-        .btn-frame.style-polaroid .mini-photo-area { background: #ddd; border: 1px solid #ccc; }
+        /* Effect ตอนเอาเมาส์ชี้ หรือกด */
+        .mini-strip:hover { transform: translateY(-15px) scale(1.05); z-index: 10; box-shadow: 0 20px 30px rgba(0,0,0,0.7); }
+        .mini-strip:active { transform: scale(0.98); }
 
-        /* 2. Disco: ดำ + จุดๆ วิบวับ */
-        .btn-frame.style-disco { 
-            background: #111; 
-            background-image: radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px);
-            background-size: 10px 10px;
+        /* องค์ประกอบภายใน Strip */
+        .strip-header {
+            text-align: center; font-weight: 800; font-size: 0.8rem;
+            margin-bottom: 10px; line-height: 1.1; white-space: nowrap;
         }
-        .btn-frame.style-disco .mini-photo-area { border: 2px solid #fff; background: #222; }
+        .strip-header span { display: block; font-weight: 400; font-size: 0.5rem; }
 
-        /* 3. Love: ขาว + ขอบแดง */
-        .btn-frame.style-love { background: #fff; border: 4px solid #ff0000; }
-        .btn-frame.style-love .frame-label { color: #ff0000; background: transparent; font-weight: bold; }
-        .btn-frame.style-love .mini-photo-area { border: 2px solid #ff0000; background: #ffebeb; }
+        .strip-photos {
+            flex: 1; display: flex; flex-direction: column; gap: 8px;
+            justify-content: center; align-items: center;
+        }
+        .photo-slot {
+            width: 100%; aspect-ratio: 4/3;
+            background: #444; /* สีเทาแทนที่รูปถ่าย */
+            position: relative; overflow: hidden;
+        }
+        /* เพิ่ม icon กล้องจางๆ ในช่องใส่รูป */
+        .photo-slot::after {
+            content: '📷'; position: absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+            font-size: 1.5rem; opacity: 0.2; filter: grayscale(1);
+        }
 
-        /* 4. System: ดำ + เขียว Hack */
-        .btn-frame.style-system { background: #000; border: 2px solid #0f0; }
-        .btn-frame.style-system .frame-label { color: #0f0; background: #000; border: 1px solid #0f0; }
-        .btn-frame.style-system .mini-photo-area { border: 1px dashed #0f0; background: #001100; }
+        .strip-footer {
+            text-align: center; font-size: 0.5rem; margin-top: 10px;
+            font-family: var(--font-code); opacity: 0.7; white-space: nowrap;
+        }
 
-        /* 5. Black: ดำด้าน */
-        .btn-frame.style-black { background: #1a1a1a; border: 1px solid #444; grid-column: span 2; }
-        .btn-frame.style-black .mini-photo-area { border: 1px solid #555; background: #111; }
+        /* ----- STYLES ของแต่ละกรอบ (เลียนแบบจาก JS Canvas) ----- */
+        
+        /* 1. POLAROID (Clean White) */
+        .mini-strip.polaroid { background: #f8f8f8; color: #000; border: 1px solid #ddd; }
+        .mini-strip.polaroid .photo-slot { background: #ddd; border: 1px solid #ccc; }
+
+        /* 2. DISCO (Dark + Sparkles) */
+        .mini-strip.disco { 
+            background: #111; color: #fff;
+            /* สร้างลายจุดวิบวับด้วย CSS Gradient */
+            background-image: radial-gradient(white 15%, transparent 16%), radial-gradient(white 15%, transparent 16%);
+            background-size: 10px 10px; background-position: 0 0, 5px 5px;
+            border: 1px solid #333;
+        }
+        .mini-strip.disco .strip-header { text-shadow: 0 0 5px rgba(0,0,0,0.8); }
+        .mini-strip.disco .photo-slot { border: 2px solid #fff; background: #333; }
+
+        /* 3. LOVE (White + Red Accent) */
+        .mini-strip.love { background: #fff; color: #000; border: 3px solid #ff0000; }
+        .mini-strip.love .strip-header { color: #000; }
+        .mini-strip.love .photo-slot { border: 3px solid #ff0000; background: #ffebeb; }
+
+        /* 4. SYSTEM (Hacker Style) */
+        .mini-strip.system { 
+            background: #000; color: #0f0; border: 2px solid #0f0;
+            font-family: var(--font-code);
+        }
+        .mini-strip.system .strip-header, .mini-strip.system .strip-footer { font-family: var(--font-code); }
+        .mini-strip.system .photo-slot { border: 1px dashed #0f0; background: #001100; }
+        .mini-strip.system .photo-slot::after { content: '[IMG]'; font-family: var(--font-code); font-size: 0.8rem;}
+
+        /* 5. BLACK (Classic Dark) */
+        .mini-strip.black { background: #1a1a1a; color: #ccc; border: 1px solid #444; }
+        .mini-strip.black .strip-header { color: #fff; }
+        .mini-strip.black .photo-slot { border: 1px solid #555; background: #222; }
+
 
         /* CAMERA UI */
         #screen-cam { justify-content: space-between; background: #000; }
@@ -312,6 +346,8 @@
             .printer-slot { height: 50vh; width: 80vw; }
             .result-sidebar { width: 80vw; transition-delay: 3s; }
             .action-btns { flex-direction: row; }
+            /* ปรับขนาด mini strip สำหรับมือถือ */
+            .mini-strip { width: 110px; height: 300px; }
         }
     </style>
 </head>
@@ -335,32 +371,59 @@
         </div>
 
         <div id="screen-frames" class="screen">
-            <h2 style="font-family:var(--font-code); color:#fff; margin-bottom:30px;">SELECT FRAME</h2>
-            <div class="frame-grid">
+            <h2 style="font-family:var(--font-code); color:#fff; margin-bottom:10px; text-align:center; width:100%;">SELECT YOUR STRIP</h2>
+            <p style="font-family:var(--font-ui); color:#888; margin-bottom:30px; text-align:center; font-size:0.9rem;">(Scroll to see more)</p>
+            
+            <div class="frame-list">
                 
-                <div class="btn-frame style-polaroid" onclick="OS.selectFrame('polaroid')">
-                    <div class="mini-photo-area"></div>
-                    <span class="frame-label">POLAROID</span>
+                <div class="mini-strip polaroid" onclick="OS.selectFrame('polaroid')">
+                    <div class="strip-header">SENA<br><span>PHOTOBOOTH</span></div>
+                    <div class="strip-photos">
+                        <div class="photo-slot"></div>
+                        <div class="photo-slot"></div>
+                        <div class="photo-slot"></div>
+                    </div>
+                    <div class="strip-footer">DD/MM/YY • MEMORIES</div>
                 </div>
 
-                <div class="btn-frame style-disco" onclick="OS.selectFrame('disco')">
-                    <div class="mini-photo-area"></div>
-                    <span class="frame-label">DISCO ✨</span>
+                <div class="mini-strip disco" onclick="OS.selectFrame('disco')">
+                    <div class="strip-header">🪩 SENA 🪩<br><span>DISCO BOOTH</span></div>
+                    <div class="strip-photos">
+                        <div class="photo-slot"></div>
+                        <div class="photo-slot"></div>
+                        <div class="photo-slot"></div>
+                    </div>
+                    <div class="strip-footer">DD/MM/YY • GOOD VIBES</div>
                 </div>
 
-                <div class="btn-frame style-love" onclick="OS.selectFrame('love')">
-                    <div class="mini-photo-area"></div>
-                    <span class="frame-label">I ❤️ SENA</span>
+                <div class="mini-strip love" onclick="OS.selectFrame('love')">
+                    <div class="strip-header">I <span style="color:red; display:inline; font-size:1rem;">♥</span> SENA</div>
+                    <div class="strip-photos">
+                        <div class="photo-slot"></div>
+                        <div class="photo-slot"></div>
+                        <div class="photo-slot"></div>
+                    </div>
+                    <div class="strip-footer">DD/MM/YY • FOREVER YOUNG</div>
                 </div>
 
-                <div class="btn-frame style-system" onclick="OS.selectFrame('system')">
-                    <div class="mini-photo-area"></div>
-                    <span class="frame-label">&lt;SYSTEM /&gt;</span>
+                <div class="mini-strip system" onclick="OS.selectFrame('system')">
+                    <div class="strip-header">SYS.LOG: CAPTURED</div>
+                    <div class="strip-photos">
+                        <div class="photo-slot"></div>
+                        <div class="photo-slot"></div>
+                        <div class="photo-slot"></div>
+                    </div>
+                    <div class="strip-footer">> END_PROCESS</div>
                 </div>
 
-                <div class="btn-frame style-black" onclick="OS.selectFrame('black')">
-                    <div class="mini-photo-area"></div>
-                    <span class="frame-label">CLASSIC BLACK</span>
+                 <div class="mini-strip black" onclick="OS.selectFrame('black')">
+                    <div class="strip-header">SENA<br><span>PHOTOBOOTH</span></div>
+                    <div class="strip-photos">
+                        <div class="photo-slot"></div>
+                        <div class="photo-slot"></div>
+                        <div class="photo-slot"></div>
+                    </div>
+                    <div class="strip-footer">DD/MM/YY • KEEP SMILING</div>
                 </div>
 
             </div>
