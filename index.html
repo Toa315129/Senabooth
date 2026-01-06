@@ -98,25 +98,79 @@
         .blink-text { animation: blink 1.5s infinite; }
         @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
-        /* FRAME SELECTION */
+        /* FRAME SELECTION UI (UPDATED) */
         #screen-frames {
             justify-content: center; align-items: center; background: #080808; padding: 20px;
         }
         .frame-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-            width: 100%; max-width: 500px;
+            width: 100%; max-width: 600px;
         }
+        
         .btn-frame {
-            background: #111; border: 1px solid #444; color: #aaa;
-            padding: 20px; text-align: center; cursor: pointer;
-            font-family: var(--font-code); font-size: 1.2rem;
-            transition: 0.2s; border-radius: 4px; display: flex; flex-direction: column; align-items: center; gap: 5px;
+            /* โครงสร้างพื้นฐานของปุ่ม */
+            height: 160px;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #333;
+            transition: 0.2s all;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .btn-frame:hover, .btn-frame:active {
-            background: #fff; color: #000; border-color: #fff;
-            box-shadow: 0 0 15px rgba(255,255,255,0.5);
+
+        .btn-frame:hover { transform: scale(1.02); z-index: 10; border-color: #fff; }
+        .btn-frame:active { transform: scale(0.98); }
+
+        /* ส่วนแสดงผลรูปจำลอง (สีเทาๆ ตรงกลาง) */
+        .mini-photo-area {
+            width: 60%; height: 50%;
+            background: #333;
+            margin-bottom: 10px;
+            border-radius: 2px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
         }
-        .btn-frame.special { grid-column: span 2; border-color: #fff; color: #fff; }
+
+        /* Label ชื่อกรอบ */
+        .frame-label {
+            font-family: var(--font-code);
+            font-size: 1rem;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #fff;
+            z-index: 2;
+        }
+
+        /* ----- STYLES สำหรับแต่ละกรอบ ----- */
+        
+        /* 1. Polaroid: ขาวคลีน */
+        .btn-frame.style-polaroid { background: #f8f8f8; }
+        .btn-frame.style-polaroid .frame-label { color: #000; background: transparent; font-weight: bold; font-family: var(--font-ui); }
+        .btn-frame.style-polaroid .mini-photo-area { background: #ddd; border: 1px solid #ccc; }
+
+        /* 2. Disco: ดำ + จุดๆ วิบวับ */
+        .btn-frame.style-disco { 
+            background: #111; 
+            background-image: radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px);
+            background-size: 10px 10px;
+        }
+        .btn-frame.style-disco .mini-photo-area { border: 2px solid #fff; background: #222; }
+
+        /* 3. Love: ขาว + ขอบแดง */
+        .btn-frame.style-love { background: #fff; border: 4px solid #ff0000; }
+        .btn-frame.style-love .frame-label { color: #ff0000; background: transparent; font-weight: bold; }
+        .btn-frame.style-love .mini-photo-area { border: 2px solid #ff0000; background: #ffebeb; }
+
+        /* 4. System: ดำ + เขียว Hack */
+        .btn-frame.style-system { background: #000; border: 2px solid #0f0; }
+        .btn-frame.style-system .frame-label { color: #0f0; background: #000; border: 1px solid #0f0; }
+        .btn-frame.style-system .mini-photo-area { border: 1px dashed #0f0; background: #001100; }
+
+        /* 5. Black: ดำด้าน */
+        .btn-frame.style-black { background: #1a1a1a; border: 1px solid #444; grid-column: span 2; }
+        .btn-frame.style-black .mini-photo-area { border: 1px solid #555; background: #111; }
 
         /* CAMERA UI */
         #screen-cam { justify-content: space-between; background: #000; }
@@ -283,11 +337,32 @@
         <div id="screen-frames" class="screen">
             <h2 style="font-family:var(--font-code); color:#fff; margin-bottom:30px;">SELECT FRAME</h2>
             <div class="frame-grid">
-                <div class="btn-frame" onclick="OS.selectFrame('polaroid')"><span>[1] POLAROID</span></div>
-                <div class="btn-frame" onclick="OS.selectFrame('disco')"><span>[2] DISCO BALL ✨</span></div>
-                <div class="btn-frame" onclick="OS.selectFrame('love')"><span>[3] I ❤️ SENA</span></div>
-                <div class="btn-frame" onclick="OS.selectFrame('system')"><span>[4] SYSTEM UI</span></div>
-                <div class="btn-frame special" onclick="OS.selectFrame('black')"><span>[5] BLACK FRAME</span></div>
+                
+                <div class="btn-frame style-polaroid" onclick="OS.selectFrame('polaroid')">
+                    <div class="mini-photo-area"></div>
+                    <span class="frame-label">POLAROID</span>
+                </div>
+
+                <div class="btn-frame style-disco" onclick="OS.selectFrame('disco')">
+                    <div class="mini-photo-area"></div>
+                    <span class="frame-label">DISCO ✨</span>
+                </div>
+
+                <div class="btn-frame style-love" onclick="OS.selectFrame('love')">
+                    <div class="mini-photo-area"></div>
+                    <span class="frame-label">I ❤️ SENA</span>
+                </div>
+
+                <div class="btn-frame style-system" onclick="OS.selectFrame('system')">
+                    <div class="mini-photo-area"></div>
+                    <span class="frame-label">&lt;SYSTEM /&gt;</span>
+                </div>
+
+                <div class="btn-frame style-black" onclick="OS.selectFrame('black')">
+                    <div class="mini-photo-area"></div>
+                    <span class="frame-label">CLASSIC BLACK</span>
+                </div>
+
             </div>
         </div>
 
